@@ -2,7 +2,8 @@
 
 import sys
 import threading
-import Queue
+# import Queue
+import queue
 import audioop
 import math
 import pyaudio
@@ -25,7 +26,8 @@ direction_n = int(max_tau * RATE)
 class DOA:
     def __init__(self):
         self.pyaudio_instance = pyaudio.PyAudio()
-        self.queue = Queue.Queue()
+        # self.queue = Queue.Queue()
+        self.queue = queue.Queue()
         self.event = threading.Event()
 
     def start(self, quit_event=None, show=None):
@@ -48,7 +50,8 @@ class DOA:
                 data = self.queue.get()
 
                 buf = np.fromstring(data, dtype='int16')
-                tau, cc = gcc_phat(buf[0::2] * window, buf[1::2] * window, fs=RATE, max_tau=max_tau, interp=1)
+                tau, cc = gcc_phat(
+                    buf[0::2] * window, buf[1::2] * window, fs=RATE, max_tau=max_tau, interp=1)
                 theta = math.asin(tau / max_tau) * 180 / math.pi
                 print('\ntheta: {}'.format(int(theta)))
 
@@ -81,7 +84,8 @@ def main():
     doa = DOA()
 
     quit_event = threading.Event()
-    thread = threading.Thread(target=doa.start, args=(quit_event, widget.setBars))
+    thread = threading.Thread(
+        target=doa.start, args=(quit_event, widget.setBars))
     thread.start()
 
     app.exec_()
@@ -89,6 +93,6 @@ def main():
     quit_event.set()
     thread.join()
 
+
 if __name__ == '__main__':
     main()
-

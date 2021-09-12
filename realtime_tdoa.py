@@ -19,7 +19,10 @@ import pyaudio
 import webrtcvad
 import numpy as np
 import collections
-import Queue
+# for Python 2.x
+# import Queue
+# for Python 3.x
+import queue
 import threading
 import signal
 import sys
@@ -33,7 +36,8 @@ class Microphone:
 
     def __init__(self, rate=16000, channels=2):
         self.pyaudio_instance = pyaudio.PyAudio()
-        self.queue = Queue.Queue()
+        # self.queue = Queue.Queue()
+        self.queue = queue.Queue()
         self.quit_event = threading.Event()
         self.channels = channels
         self.sample_rate = rate
@@ -64,7 +68,7 @@ class Microphone:
             rate=self.sample_rate,
             frames_per_buffer=size,
             stream_callback=self._callback,
-            input_device_index = device_index,
+            input_device_index=device_index,
         )
 
         while not self.quit_event.is_set():
@@ -72,7 +76,7 @@ class Microphone:
             if not frames:
                 break
             yield frames
-        
+
         stream.close()
 
     def close(self):
@@ -91,6 +95,7 @@ def main():
     sound_speed = 343.2
     distance = 0.14
 
+    # max_tau
     max_tau = distance / sound_speed
 
     def signal_handler(sig, num):
@@ -106,10 +111,11 @@ def main():
             mono, _ = audioop.ratecv(mono, 2, 1, sample_rate, 16000, None)
 
         if vad.is_speech(mono):
-            tau, _ = gcc_phat(buf[0::channels]*window, buf[1::channels]*window, fs=sample_rate, max_tau=max_tau)
+            tau, _ = gcc_phat(buf[0::channels]*window, buf[1::channels]
+                              * window, fs=sample_rate, max_tau=max_tau)
             theta = math.asin(tau / max_tau) * 180 / math.pi
             print('\ntheta: {}'.format(int(theta)))
 
-        
+
 if __name__ == '__main__':
     main()
